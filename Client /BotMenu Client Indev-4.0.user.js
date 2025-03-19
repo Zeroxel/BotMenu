@@ -49,7 +49,7 @@
     container.appendChild(toggleButton);
 
     const QButton = document.createElement('button');
-    QButton.innerText = 'Запросить команды';
+    QButton.innerText = '🔎';
     QButton.style.alignSelf = 'flex';
     QButton.style.backgroundColor = '#333';
     QButton.style.color = '#fff';
