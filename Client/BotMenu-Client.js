@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BotMenu Client Indev
 // @namespace    http://tampermonkey.net/
-// @version      4.0
+// @version      4.1
 // @description  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @author       gtnntg
 // @match        *://multiplayerpiano.net/*
@@ -93,7 +93,7 @@
         }
     }
 
-    function Requestcommands(botId) {
+    function Requestcommands() {
       MPP.client.sendArray([{
           m: "custom",
           data: {
@@ -104,6 +104,19 @@
           target: { mode: "subscribed" },
       }]);
       sendmsg('Запрос на команды был отправлен всем ботам находящиеся в данной комнате','Bot Menu Client','Bot Menu Client','#0066ff')
+    }
+
+    function botsend(botId,message) {
+      MPP.client.sendArray([{
+          m: "custom",
+          data: {
+              m: "BotMenuClient",
+              language: localStorage.getItem('language'),
+              type: "msg",
+              message:message,
+          },
+          target: { mode: "id" , id: botId},
+      }]);
     }
 
     function sendmsg(msg,name,id,color) {
@@ -196,6 +209,7 @@
 
             // Обработчик нажатия на кнопку
             btn.onclick = () => {
+                if (!cmd.message) {
                 let finalCommand = cmd.command; // Изначальная команда
 
                 // Проверяем, заполнены ли все параметры
@@ -215,8 +229,11 @@
                     chatInput.focus(); // Устанавливаем фокус на чат
                 } else {
                     console.error('Chat input not found!');
+                }}else {
+                    let msguser = cmd.message
+                    botsend(botId,msguser)
                 }
-            };
+              };
 
             commandBlock.appendChild(btn); // Добавляем кнопку в блок команды
             commandsContainer.appendChild(commandBlock); // Добавляем блок команды в контейнер
