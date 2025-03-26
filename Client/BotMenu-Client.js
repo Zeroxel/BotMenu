@@ -5,7 +5,7 @@
 // @description  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @author       gtnntg
 // @match        *://multiplayerpiano.net/*
-// @license      MIT
+// @license      ARC
 // @grant        none
 // ==/UserScript==
 
