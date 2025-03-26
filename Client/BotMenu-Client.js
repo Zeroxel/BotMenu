@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         BotMenu Client Indev
 // @namespace    http://tampermonkey.net/
-// @version      4.1
-// @description  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
+// @version      4.2
+// @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
+// @description:en  Interface for bot team management with support for categorization and sorting
 // @author       gtnntg
 // @match        *://multiplayerpiano.net/*
 // @license      ARC
@@ -13,7 +14,7 @@
 (function () {
     'use strict';
 
-    const botsData = {}; // Хранение данных ботов { botId: { name, categories } }
+    const botsData = {}; // Хранение данных ботов { botId: { name, categories, userRank } }
 
     // Создаём контейнер для вкладок и кнопок
     const container = document.createElement('div');
@@ -152,185 +153,162 @@
 
     // Функция для отображения команд
     function showCommands(botId) {
-    commandsContainer.innerHTML = ''; // Очищаем контейнер команд
-    commandsContainer.style.display = 'block'; // Показываем контейнер
+        commandsContainer.innerHTML = ''; // Очищаем контейнер команд
+        commandsContainer.style.display = 'block'; // Показываем контейнер
 
-    const botData = botsData[botId];
-    if (!botData) return; // Если данных нет, выходим
+        const botData = botsData[botId];
+        if (!botData) return; // Если данных нет, выходим
 
-   /* const title = document.createElement('h3');
-    title.innerText = `${botData.name}`;
-    title.style.marginBottom = '10px';
-    commandsContainer.appendChild(title);*/
+        // Сортируем категории по позиции
+        botData.categories.sort((a, b) => a.position - b.position);
 
-    // Сортируем категории по позиции
-    botData.categories.sort((a, b) => a.position - b.position);
+        // Обрабатываем каждую категорию
+        botData.categories.forEach((category) => {
+            if (botData.userRank >= category.requiredRank) { // Проверяем ранг пользователя
+                const categoryTitle = document.createElement('h4');
+                categoryTitle.innerText = category.name; // Название категории
+                categoryTitle.style.marginTop = '10px';
+                categoryTitle.style.color = category.categoryColor ? category.categoryColor : '#aaa';
+                commandsContainer.appendChild(categoryTitle);
 
-    // Обрабатываем каждую категорию
-    botData.categories.forEach((category) => {
-        const categoryTitle = document.createElement('h4');
-        categoryTitle.innerText = category.name; // Название категории
-        categoryTitle.style.marginTop = '10px';
-        categoryTitle.style.color = category.categoryColor ? category.categoryColor : '#aaa';
-        commandsContainer.appendChild(categoryTitle);
+                // Обрабатываем команды внутри категории
+                category.commands.forEach((cmd) => {
+                    const commandBlock = document.createElement('div'); // Блок для команды
+                    commandBlock.style.display = 'flex';
+                    commandBlock.style.flexDirection = 'column';
+                    commandBlock.style.marginBottom = '10px';
 
-        // Обрабатываем команды внутри категории
-        category.commands.forEach((cmd) => {
-            const commandBlock = document.createElement('div'); // Блок для команды
-            commandBlock.style.display = 'flex';
-            commandBlock.style.flexDirection = 'column';
-            commandBlock.style.marginBottom = '10px';
+                    const btn = document.createElement('button'); // Кнопка команды
+                    btn.innerText = cmd.label;
+                    btn.title = cmd.description;
+                    btn.style.padding = '8px';
+                    btn.style.border = '1px solid #ccc';
+                    btn.style.borderRadius = '5px';
+                    btn.style.backgroundColor = '#e0e0e0';
+                    btn.style.cursor = 'pointer';
 
-            const btn = document.createElement('button'); // Кнопка команды
-            btn.innerText = cmd.label;
-            btn.title = cmd.description;
-            btn.style.padding = '8px';
-            btn.style.border = '1px solid #ccc';
-            btn.style.borderRadius = '5px';
-            btn.style.backgroundColor = '#e0e0e0';
-            btn.style.cursor = 'pointer';
+                    const inputs = []; // Массив для хранения полей ввода
 
-            const inputs = []; // Массив для хранения полей ввода
+                    // Если команда имеет параметры, создаем поля ввода
+                    if (cmd.parameters && cmd.parameters.length > 0) {
+                        cmd.parameters.forEach(param => {
+                            const Input = document.createElement('input');
+                            Input.type = 'text';
+                            Input.placeholder = `Введите ${param}`;
+                            Input.style.marginBottom = '5px';
+                            Input.style.backgroundColor = '#333';
+                            Input.style.color = '#fff';
+                            Input.style.borderRadius = '4px';
+                            commandBlock.appendChild(Input);
+                            inputs.push(Input); // Добавляем поле в массив
+                        });
+                    }
 
-            // Если команда имеет параметры, создаем поля ввода
-            if (cmd.parameters && cmd.parameters.length > 0) {
-                cmd.parameters.forEach(param => {
-                    const Input = document.createElement('input');
-                    Input.type = 'text';
-                    Input.placeholder = `Введите ${param}`;
-                    Input.style.marginBottom = '5px';
-                    Input.style.backgroundColor = '#333';
-                    Input.style.color = '#fff';
-                    Input.style.borderRadius = '4px';
-                    commandBlock.appendChild(Input);
-                    inputs.push(Input); // Добавляем поле в массив
+                    // Обработчик нажатия на кнопку
+                    btn.onclick = () => {
+                        if (!cmd.message) {
+                            let finalCommand = cmd.command; // Изначальная команда
+
+                            // Проверяем, заполнены ли все параметры
+                            for (let i = 0; i < inputs.length; i++) {
+                                const value = inputs[i].value.trim();
+                                if (!value) {
+                                    sendmsg(`Параметр "${cmd.parameters[i]}" не может быть пустым!`,'Bot Menu Client (Error)','Bot Menu Client','#0066ff')
+                                    return; // Отменяем выполнение, если параметр пуст
+                                }
+                                finalCommand = finalCommand.replace(`[${cmd.parameters[i]}]`, value); // Заменяем параметр
+                            }
+
+                            // Вставляем готовую команду в чат
+                            const chatInput = document.querySelector('#chat-input');
+                            if (chatInput) {
+                                chatInput.value = finalCommand;
+                                chatInput.focus(); // Устанавливаем фокус на чат
+                            } else {
+                                console.error('Chat input not found!');
+                            }
+                        } else {
+                            let msguser = cmd.message
+                            botsend(botId,msguser)
+                        }
+                    };
+
+                    commandBlock.appendChild(btn); // Добавляем кнопку в блок команды
+                    commandsContainer.appendChild(commandBlock); // Добавляем блок команды в контейнер
+
                 });
             }
-
-            // Обработчик нажатия на кнопку
-            btn.onclick = () => {
-                if (!cmd.message) {
-                let finalCommand = cmd.command; // Изначальная команда
-
-                // Проверяем, заполнены ли все параметры
-                for (let i = 0; i < inputs.length; i++) {
-                    const value = inputs[i].value.trim();
-                    if (!value) {
-                        sendmsg(`Параметр "${cmd.parameters[i]}" не может быть пустым!`,'Bot Menu Client (Error)','Bot Menu Client','#0066ff')
-                        return; // Отменяем выполнение, если параметр пуст
-                    }
-                    finalCommand = finalCommand.replace(`[${cmd.parameters[i]}]`, value); // Заменяем параметр
-                }
-
-                // Вставляем готовую команду в чат
-                const chatInput = document.querySelector('#chat-input');
-                if (chatInput) {
-                    chatInput.value = finalCommand;
-                    chatInput.focus(); // Устанавливаем фокус на чат
-                } else {
-                    console.error('Chat input not found!');
-                }}else {
-                    let msguser = cmd.message
-                    botsend(botId,msguser)
-                }
-              };
-
-            commandBlock.appendChild(btn); // Добавляем кнопку в блок команды
-            commandsContainer.appendChild(commandBlock); // Добавляем блок команды в контейнер
         });
-    });
-}
-    /* Поле поиска
-const searchInput = document.createElement('input');
-searchInput.type = 'text';
-searchInput.marginBottom = '10px';
-searchInput.placeholder = 'Поиск команд';
-searchInput.style.marginBottom = '10px';
-searchInput.style.backgroundColor = '#333';
-searchInput.style.color = '#fff';
-searchInput.style.borderRadius = '4px';
-searchInput.oninput = filterCommands;
-container.appendChild(searchInput);
-
-function filterCommands() {
-    const query = searchInput.value.toLowerCase();
-    Array.from(commandsContainer.children).forEach(child => {
-        if (child.innerText.toLowerCase().includes(query)) {
-            child.style.display = 'block';
-        } else {
-            child.style.display = 'none';
-        }
-    });
-}*/
+    }
 
     // Делает контейнер перетаскиваемым
     class BotChatPanel {
-    constructor() {
-        this.createPanel();
+        constructor() {
+            this.createPanel();
+        }
+
+        createPanel() {
+            this.panel = document.createElement("div");
+            this.panel.id = "bot-chat-panel";
+            this.panel.style.position = "fixed";
+            this.panel.style.bottom = "20px";
+            this.panel.style.right = "20px";
+            this.panel.style.width = "300px";
+            this.panel.style.height = "400px";
+            this.panel.style.background = "#222";
+            this.panel.style.color = "#fff";
+            this.panel.style.borderRadius = "10px";
+            this.panel.style.padding = "10px";
+            this.panel.style.overflowY = "auto";
+            this.panel.style.display = "none";
+            this.panel.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
+
+            const closeButton = document.createElement("button");
+            closeButton.innerText = "✖";
+            closeButton.style.position = "absolute";
+            closeButton.style.top = "5px";
+            closeButton.style.right = "5px";
+            closeButton.style.background = "transparent";
+            closeButton.style.color = "#fff";
+            closeButton.style.border = "none";
+            closeButton.style.cursor = "pointer";
+            closeButton.onclick = () => this.panel.style.display = "none";
+            this.panel.appendChild(closeButton);
+            document.body.appendChild(this.panel);
+        }
+
+        showMessage(botName, botColor, message) {
+            const messageDiv = document.createElement("div");
+            messageDiv.style.padding = "5px";
+            messageDiv.style.borderBottom = "1px solid #444";
+
+            const botLabel = document.createElement("span");
+            botLabel.innerText = `[${botName}] `;
+            botLabel.style.color = botColor;
+            botLabel.style.fontWeight = "bold";
+
+            const textSpan = document.createElement("span");
+            textSpan.innerText = message;
+
+            messageDiv.appendChild(botLabel);
+            messageDiv.appendChild(textSpan);
+            this.panel.appendChild(messageDiv);
+
+            this.panel.style.display = "block";
+        }
     }
 
-    createPanel() {
-        this.panel = document.createElement("div");
-        this.panel.id = "bot-chat-panel";
-        this.panel.style.position = "fixed";
-        this.panel.style.bottom = "20px";
-        this.panel.style.right = "20px";
-        this.panel.style.width = "300px";
-        this.panel.style.height = "400px";
-        this.panel.style.background = "#222";
-        this.panel.style.color = "#fff";
-        this.panel.style.borderRadius = "10px";
-        this.panel.style.padding = "10px";
-        this.panel.style.overflowY = "auto";
-        this.panel.style.display = "none";
-        this.panel.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
+    // Создаем панель
+    const botChat = new BotChatPanel();
 
-        const closeButton = document.createElement("button");
-        closeButton.innerText = "✖";
-        closeButton.style.position = "absolute";
-        closeButton.style.top = "5px";
-        closeButton.style.right = "5px";
-        closeButton.style.background = "transparent";
-        closeButton.style.color = "#fff";
-        closeButton.style.border = "none";
-        closeButton.style.cursor = "pointer";
-        closeButton.onclick = () => this.panel.style.display = "none";
-        this.panel.appendChild(closeButton);
-        document.body.appendChild(this.panel);
+    // Функция для обработки сообщений с directsend
+    function handleCommandResponse(response) {
+        if (response.directsend === "true") {
+            botChat.showMessage(response.botName, response.botColor, response.message);
+        } else {
+            console.log("Обычный ответ в чат", response.message);
+        }
     }
-
-    showMessage(botName, botColor, message) {
-        const messageDiv = document.createElement("div");
-        messageDiv.style.padding = "5px";
-        messageDiv.style.borderBottom = "1px solid #444";
-
-        const botLabel = document.createElement("span");
-        botLabel.innerText = `[${botName}] `;
-        botLabel.style.color = botColor;
-        botLabel.style.fontWeight = "bold";
-
-        const textSpan = document.createElement("span");
-        textSpan.innerText = message;
-
-        messageDiv.appendChild(botLabel);
-        messageDiv.appendChild(textSpan);
-        this.panel.appendChild(messageDiv);
-
-        this.panel.style.display = "block";
-    }
-}
-
-// Создаем панель
-const botChat = new BotChatPanel();
-
-// Функция для обработки сообщений с directsend
-function handleCommandResponse(response) {
-    if (response.directsend === "true") {
-        botChat.showMessage(response.botName, response.botColor, response.message);
-    } else {
-        console.log("Обычный ответ в чат", response.message);
-    }
-}
 
     function makeDraggable(element) {
         let offsetX = 0, offsetY = 0, mouseDown = false;
@@ -358,7 +336,7 @@ function handleCommandResponse(response) {
     MPP.client.on('custom', (data) => {
         if (!data.data || data.data.m !== 'BotMenu') return;
 
-        const { botName, categories } = data.data;
+        const { botName, categories, userRank } = data.data;
         const botId = data.p;
 
         if (!botId || !botName || !Array.isArray(categories)) {
@@ -368,16 +346,17 @@ function handleCommandResponse(response) {
 
         // Проверяем, есть ли данные для бота
         if (!botsData[botId]) {
-            botsData[botId] = { name: botName, categories: [] };
+            botsData[botId] = { name: botName, categories: [], userRank };
 
             // Обрабатываем категории
             categories.forEach((category) => {
-                const { categoryName, position, commands } = category;
+                const { categoryName, position, commands, requiredRank } = category;
 
                 botsData[botId].categories.push({
                     name: categoryName,
                     position,
                     commands,
+                    requiredRank
                 });
             });
 
@@ -389,22 +368,15 @@ function handleCommandResponse(response) {
                 name: category.categoryName,
                 position: category.position,
                 commands: category.commands,
+                requiredRank: category.requiredRank
             }));
+            botsData[botId].userRank = userRank;
             sendmsg(`Данные бота ${botName} были обновлены`,'Bot Menu Client','Bot Menu Client','#0066ff');
         }
     });
-    if (localStorage.getItem('language') === null){
-        const tryi18nextLng = confirm("try i18nextLng for language?")
-        if (tryi18nextLng === true){
-            localStorage.setItem('language', localStorage.getItem('i18nextLng'));
-            alert('successfully')
-        }else{
 
-        }
-    }
     // При подключении отправляем +custom
     MPP.client.on('hi', () => {
-        const language = localStorage.getItem('language');
         MPP.client.sendArray([{ m: '+custom' }]);
     });
 })();
