@@ -1,21 +1,24 @@
-MIT License
+ARC License
+Copyright (c) 2025 gtnntg (Georgiy Shvedov)
 
-Copyright (c) 2025 gtnntg (Georgiy Shvedov)  
+Разрешается бесплатно использовать, копировать, изменять, сливать, публиковать и распространять этот программный код, при условии соблюдения следующих условий:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Авторское признание:
+Должно быть сохранено указанное выше уведомление об авторских правах и это разрешение в исходном коде или в любой значимой части программы.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Свобода использования:
+Любой может использовать, модифицировать и распространять программу в личных или коммерческих целях.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Право автора на контроль:
+Автор сохраняет исключительное право вмешиваться в изменения и требовать их исправления или удаления, если считает их нарушающими исходный замысел, репутацию проекта или безопасность программы.
+
+Ответственность за модификации:
+Все производные версии должны включать уведомление, что они модифицированы и не являются оригинальной работой автора.
+
+Отказ от гарантий:
+Программное обеспечение предоставляется «как есть», без каких-либо гарантий. Автор не несет ответственности за любые убытки или последствия использования программы.
+
+Производные работы — ARC-D:
+Все изменения, ремиксы или производные работы, созданные на основе этого кода, должны быть выпущены под лицензией ARC-D (Author's Rights Code — Derivative). Эти производные работы обязаны включать ссылку на оригинальный проект, указывать авторов оригинала и автора ремикса, а также быть лицензированы согласно условиям ARC-D.
+
+Эта лицензия называется ARC — Author’s Rights Code и создана для защиты прав автора с сохранением открытости проекта.
