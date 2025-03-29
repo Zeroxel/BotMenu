@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         BotMenu Client Indev
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/Zeroxel/BotMenu/
 // @version      4.3
 // @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @description:en  Interface for bot team management with support for categorization and sorting
