@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BotMenu Client Indev
 // @namespace    http://tampermonkey.net/
-// @version      4.2
+// @version      4.3
 // @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @description:en  Interface for bot team management with support for categorization and sorting
 // @author       gtnntg
@@ -153,93 +153,118 @@
 
     // Функция для отображения команд
     function showCommands(botId) {
-        commandsContainer.innerHTML = ''; // Очищаем контейнер команд
-        commandsContainer.style.display = 'block'; // Показываем контейнер
+    commandsContainer.innerHTML = ''; // Очищаем контейнер команд
+    commandsContainer.style.display = 'block'; // Показываем контейнер
 
-        const botData = botsData[botId];
-        if (!botData) return; // Если данных нет, выходим
+    const botData = botsData[botId];
+    if (!botData) return; // Если данных нет, выходим
 
-        // Сортируем категории по позиции
-        botData.categories.sort((a, b) => a.position - b.position);
+   /* const title = document.createElement('h3');
+    title.innerText = `${botData.name}`;
+    title.style.marginBottom = '10px';
+    commandsContainer.appendChild(title);*/
 
-        // Обрабатываем каждую категорию
-        botData.categories.forEach((category) => {
-            if (botData.userRank >= category.requiredRank) { // Проверяем ранг пользователя
-                const categoryTitle = document.createElement('h4');
-                categoryTitle.innerText = category.name; // Название категории
-                categoryTitle.style.marginTop = '10px';
-                categoryTitle.style.color = category.categoryColor ? category.categoryColor : '#aaa';
-                commandsContainer.appendChild(categoryTitle);
+    // Сортируем категории по позиции
+    botData.categories.sort((a, b) => a.position - b.position);
 
-                // Обрабатываем команды внутри категории
-                category.commands.forEach((cmd) => {
-                    const commandBlock = document.createElement('div'); // Блок для команды
-                    commandBlock.style.display = 'flex';
-                    commandBlock.style.flexDirection = 'column';
-                    commandBlock.style.marginBottom = '10px';
+    // Обрабатываем каждую категорию
+    botData.categories.forEach((category) => {
+        const categoryTitle = document.createElement('h4');
+        categoryTitle.innerText = category.name; // Название категории
+        categoryTitle.style.marginTop = '10px';
+        categoryTitle.style.color = category.categoryColor ? category.categoryColor : '#aaa';
+        categoryTitle.style.cursor = 'pointer'; // Добавляем курсор pointer для показа кликабельности
 
-                    const btn = document.createElement('button'); // Кнопка команды
-                    btn.innerText = cmd.label;
-                    btn.title = cmd.description;
-                    btn.style.padding = '8px';
-                    btn.style.border = '1px solid #ccc';
-                    btn.style.borderRadius = '5px';
-                    btn.style.backgroundColor = '#e0e0e0';
-                    btn.style.cursor = 'pointer';
+        // Добавляем иконку для показа состояния (свернуто/развернуто)
+        const categoryIcon = document.createElement('span');
+        categoryIcon.innerText = ' ▼'; // По умолчанию развернуто
+        categoryIcon.style.fontSize = '12px';
+        categoryTitle.appendChild(categoryIcon);
 
-                    const inputs = []; // Массив для хранения полей ввода
+        commandsContainer.appendChild(categoryTitle);
 
-                    // Если команда имеет параметры, создаем поля ввода
-                    if (cmd.parameters && cmd.parameters.length > 0) {
-                        cmd.parameters.forEach(param => {
-                            const Input = document.createElement('input');
-                            Input.type = 'text';
-                            Input.placeholder = `Введите ${param}`;
-                            Input.style.marginBottom = '5px';
-                            Input.style.backgroundColor = '#333';
-                            Input.style.color = '#fff';
-                            Input.style.borderRadius = '4px';
-                            commandBlock.appendChild(Input);
-                            inputs.push(Input); // Добавляем поле в массив
-                        });
-                    }
+        // Создаем контейнер для команд категории
+        const commandList = document.createElement('div');
+        commandList.style.marginLeft = '10px';
+        commandsContainer.appendChild(commandList);
 
-                    // Обработчик нажатия на кнопку
-                    btn.onclick = () => {
-                        if (!cmd.message) {
-                            let finalCommand = cmd.command; // Изначальная команда
+        // Добавляем обработчик клика для сворачивания/разворачивания
+        categoryTitle.onclick = () => {
+            if (commandList.style.display === 'none') {
+                commandList.style.display = 'block';
+                categoryIcon.innerText = ' ▼';
+            } else {
+                commandList.style.display = 'none';
+                categoryIcon.innerText = ' ►';
+            }
+        };
 
-                            // Проверяем, заполнены ли все параметры
-                            for (let i = 0; i < inputs.length; i++) {
-                                const value = inputs[i].value.trim();
-                                if (!value) {
-                                    sendmsg(`Параметр "${cmd.parameters[i]}" не может быть пустым!`,'Bot Menu Client (Error)','Bot Menu Client','#0066ff')
-                                    return; // Отменяем выполнение, если параметр пуст
-                                }
-                                finalCommand = finalCommand.replace(`[${cmd.parameters[i]}]`, value); // Заменяем параметр
-                            }
+        // Обрабатываем команды внутри категории
+        category.commands.forEach((cmd) => {
+            const commandBlock = document.createElement('div'); // Блок для команды
+            commandBlock.style.display = 'flex';
+            commandBlock.style.flexDirection = 'column';
+            commandBlock.style.marginBottom = '10px';
 
-                            // Вставляем готовую команду в чат
-                            const chatInput = document.querySelector('#chat-input');
-                            if (chatInput) {
-                                chatInput.value = finalCommand;
-                                chatInput.focus(); // Устанавливаем фокус на чат
-                            } else {
-                                console.error('Chat input not found!');
-                            }
-                        } else {
-                            let msguser = cmd.message
-                            botsend(botId,msguser)
-                        }
-                    };
+            const btn = document.createElement('button'); // Кнопка команды
+            btn.innerText = cmd.label;
+            btn.title = cmd.description;
+            btn.style.padding = '8px';
+            btn.style.border = '1px solid #ccc';
+            btn.style.borderRadius = '5px';
+            btn.style.backgroundColor = '#e0e0e0';
+            btn.style.cursor = 'pointer';
 
-                    commandBlock.appendChild(btn); // Добавляем кнопку в блок команды
-                    commandsContainer.appendChild(commandBlock); // Добавляем блок команды в контейнер
+            const inputs = []; // Массив для хранения полей ввода
 
+            // Если команда имеет параметры, создаем поля ввода
+            if (cmd.parameters && cmd.parameters.length > 0) {
+                cmd.parameters.forEach(param => {
+                    const Input = document.createElement('input');
+                    Input.type = 'text';
+                    Input.placeholder = `Введите ${param}`;
+                    Input.style.marginBottom = '5px';
+                    Input.style.backgroundColor = '#333';
+                    Input.style.color = '#fff';
+                    Input.style.borderRadius = '4px';
+                    commandBlock.appendChild(Input);
+                    inputs.push(Input); // Добавляем поле в массив
                 });
             }
+
+            // Обработчик нажатия на кнопку
+            btn.onclick = () => {
+                if (!cmd.message) {
+                let finalCommand = cmd.command; // Изначальная команда
+
+                // Проверяем, заполнены ли все параметры
+                for (let i = 0; i < inputs.length; i++) {
+                    const value = inputs[i].value.trim();
+                    if (!value) {
+                        sendmsg(`Параметр "${cmd.parameters[i]}" не может быть пустым!`,'Bot Menu Client (Error)','Bot Menu Client','#0066ff')
+                        return; // Отменяем выполнение, если параметр пуст
+                    }
+                    finalCommand = finalCommand.replace(`[${cmd.parameters[i]}]`, value); // Заменяем параметр
+                }
+
+                // Вставляем готовую команду в чат
+                const chatInput = document.querySelector('#chat-input');
+                if (chatInput) {
+                    chatInput.value = finalCommand;
+                    chatInput.focus(); // Устанавливаем фокус на чат
+                } else {
+                    console.error('Chat input not found!');
+                }}else {
+                    let msguser = cmd.message
+                    botsend(botId,msguser)
+                }
+              };
+
+            commandBlock.appendChild(btn); // Добавляем кнопку в блок команды
+            commandList.appendChild(commandBlock); // Добавляем блок команды в контейнер категории
         });
-    }
+    });
+}
 
     // Делает контейнер перетаскиваемым
     class BotChatPanel {
