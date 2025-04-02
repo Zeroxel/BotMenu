@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         BotMenu Client Indev
 // @namespace    https://github.com/Zeroxel/BotMenu/
-// @version      4.3
+// @version      4.4
 // @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @description:en  Interface for bot team management with support for categorization and sorting
 // @author       gtnntg
 // @match        *://multiplayerpiano.net/*
+// @match        *://mpp.8448.space/*
 // @license      ARC
 // @grant        none
 // ==/UserScript==
