@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BotMenu Client Indev
 // @namespace    https://github.com/Zeroxel/BotMenu/
-// @version      4.5
+// @version      4.6
 // @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @description:en  Interface for bot team management with support for categorization and sorting
 // @author       gtnntg
@@ -66,7 +66,8 @@
     const tabs = document.createElement('div'); // Контейнер для вкладок
     tabs.id = 'bot-tabs';
     tabs.style.display = 'flex';
-    tabs.style.flexWrap = 'wrap';
+    tabs.style.flexDirection = 'column';
+    tabs.style.flexWrap = 'nowrap';
     tabs.style.marginBottom = '10px';
     container.appendChild(tabs);
 
