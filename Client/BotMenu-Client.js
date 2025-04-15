@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BotMenu Client Indev
 // @namespace    https://github.com/Zeroxel/BotMenu/
-// @version      4.6
+// @version      4.7
 // @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @description:en  Interface for bot team management with support for categorization and sorting
 // @author       gtnntg
@@ -377,7 +377,7 @@
 
             // Обрабатываем категории
             categories.forEach((category) => {
-                const { categoryName, position, commands, requiredRank } = category;
+                const { categoryName, categoryColor, position, commands, requiredRank } = category;
 
                 botsData[botId].categories.push({
                     name: categoryName,
