@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BotMenu Client Indev
 // @namespace    https://github.com/Zeroxel/BotMenu/
-// @version      4.7
+// @version      4.8
 // @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @description:en  Interface for bot team management with support for categorization and sorting
 // @author       gtnntg
@@ -214,7 +214,8 @@
             btn.style.padding = '8px';
             btn.style.border = '1px solid #ccc';
             btn.style.borderRadius = '5px';
-            btn.style.backgroundColor = '#e0e0e0';
+            btn.style.backgroundColor = !cmd.bcolor ? '#e0e0e0' : cmd.bcolor ;
+            btn.style.color = !cmd.color ? '#000' : cmd.color ;
             btn.style.cursor = 'pointer';
 
             const inputs = []; // Массив для хранения полей ввода
