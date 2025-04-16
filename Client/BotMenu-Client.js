@@ -1,21 +1,85 @@
 // ==UserScript==
 // @name         BotMenu Client Indev
 // @namespace    https://github.com/Zeroxel/BotMenu/
-// @version      4.8
+// @version      4.9
 // @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @description:en  Interface for bot team management with support for categorization and sorting
 // @author       gtnntg
 // @match        *://multiplayerpiano.net/*
 // @match        *://mpp.8448.space/*
 // @license      ARC
-// @grant        none
+// @grant        GM_info
 // ==/UserScript==
 
 /*global MPP*/
+const useversion = GM_info.script.version;
+
 (function () {
     'use strict';
 
     const botsData = {}; // Хранение данных ботов { botId: { name, categories, userRank } }
+    const botmenu = {
+        client: {
+            /*
+             BotMenu Client -> User
+            */
+            send(msg,name,id,color) {
+                MPP.chat.receive({
+                    "m": "a",
+                    "t": Date.now(),
+                    "a": msg,
+                    "p": {
+                        "_id": id,
+                        "name": name,
+                        "color": color,
+                        "id": id
+                    }
+                });
+            }
+            //---------------
+        },
+        bot: {
+            /*
+            BotMenu Client -> BotMenu Server
+            */
+            send(botId,message) {
+                MPP.client.sendArray([{
+                    m: "custom",
+                    data: {
+                        m: "BotMenuClient",
+                        language: localStorage.getItem('language'),
+                        type: "msg",
+                        message:message,
+                    },
+                    target: { mode: "id" , id: botId},
+                }]);
+            },
+            type(botId, typename) {
+                MPP.client.sendArray([{
+                    m: "custom",
+                    data: {
+                        m: "BotMenuClient",
+                        language: localStorage.getItem('language'),
+                        type: typename,
+                    },
+                    target: { mode: "id" , id: botId},
+                }]);
+            },
+            //-----------------
+            reqcmds() {
+                MPP.client.sendArray([{
+                    m: "custom",
+                    data: {
+                        m: "BotMenuClient",
+                        language: localStorage.getItem('language'),
+                        type: "Requestcommands"
+                    },
+                    target: { mode: "subscribed" },
+                }]);
+                botmenu.client.send('Запрос на команды был отправлен всем ботам находящиеся в данной комнате','Bot Menu Client','Bot Menu Client','#0066ff')
+            }
+        }
+    }
 
     // Создаём контейнер для вкладок и кнопок
     const container = document.createElement('div');
@@ -60,7 +124,7 @@
     QButton.style.marginLeft = '10px';
     QButton.style.cursor = 'pointer';
     QButton.style.marginBottom = '10px';
-    QButton.onclick = Requestcommands;
+    QButton.onclick = botmenu.bot.reqcmds;
     container.appendChild(QButton);
 
     const tabs = document.createElement('div'); // Контейнер для вкладок
@@ -96,45 +160,6 @@
         }
     }
 
-    function Requestcommands() {
-      MPP.client.sendArray([{
-          m: "custom",
-          data: {
-              m: "BotMenuClient",
-              language: localStorage.getItem('language'),
-              type: "Requestcommands"
-          },
-          target: { mode: "subscribed" },
-      }]);
-      sendmsg('Запрос на команды был отправлен всем ботам находящиеся в данной комнате','Bot Menu Client','Bot Menu Client','#0066ff')
-    }
-
-    function botsend(botId,message) {
-      MPP.client.sendArray([{
-          m: "custom",
-          data: {
-              m: "BotMenuClient",
-              language: localStorage.getItem('language'),
-              type: "msg",
-              message:message,
-          },
-          target: { mode: "id" , id: botId},
-      }]);
-    }
-
-    function sendmsg(msg,name,id,color) {
-      MPP.chat.receive({
-                    "m": "a",
-                    "t": Date.now(),
-                    "a": msg,
-                    "p": {
-                        "_id": id,
-                        "name": name,
-                        "color": color,
-                        "id": id
-                    }
-                });
-    }
 
     // Функция для добавления новой вкладки
     function addTab(botId, botName) {
@@ -155,119 +180,119 @@
 
     // Функция для отображения команд
     function showCommands(botId) {
-    commandsContainer.innerHTML = ''; // Очищаем контейнер команд
-    commandsContainer.style.display = 'block'; // Показываем контейнер
+        commandsContainer.innerHTML = ''; // Очищаем контейнер команд
+        commandsContainer.style.display = 'block'; // Показываем контейнер
 
-    const botData = botsData[botId];
-    if (!botData) return; // Если данных нет, выходим
+        const botData = botsData[botId];
+        if (!botData) return; // Если данных нет, выходим
 
-   /* const title = document.createElement('h3');
+        /* const title = document.createElement('h3');
     title.innerText = `${botData.name}`;
     title.style.marginBottom = '10px';
     commandsContainer.appendChild(title);*/
 
-    // Сортируем категории по позиции
-    botData.categories.sort((a, b) => a.position - b.position);
+        // Сортируем категории по позиции
+        botData.categories.sort((a, b) => a.position - b.position);
 
-    // Обрабатываем каждую категорию
-    botData.categories.forEach((category) => {
-        const categoryTitle = document.createElement('h4');
-        categoryTitle.innerText = category.name; // Название категории
-        categoryTitle.style.marginTop = '10px';
-        categoryTitle.style.color = category.categoryColor ? category.categoryColor : '#aaa';
-        categoryTitle.style.cursor = 'pointer'; // Добавляем курсор pointer для показа кликабельности
+        // Обрабатываем каждую категорию
+        botData.categories.forEach((category) => {
+            const categoryTitle = document.createElement('h4');
+            categoryTitle.innerText = category.name; // Название категории
+            categoryTitle.style.marginTop = '10px';
+            categoryTitle.style.color = category.categoryColor ? category.categoryColor : '#aaa';
+            categoryTitle.style.cursor = 'pointer'; // Добавляем курсор pointer для показа кликабельности
 
-        // Добавляем иконку для показа состояния (свернуто/развернуто)
-        const categoryIcon = document.createElement('span');
-        categoryIcon.innerText = ' ▼'; // По умолчанию развернуто
-        categoryIcon.style.fontSize = '12px';
-        categoryTitle.appendChild(categoryIcon);
+            // Добавляем иконку для показа состояния (свернуто/развернуто)
+            const categoryIcon = document.createElement('span');
+            categoryIcon.innerText = ' ▼'; // По умолчанию развернуто
+            categoryIcon.style.fontSize = '12px';
+            categoryTitle.appendChild(categoryIcon);
 
-        commandsContainer.appendChild(categoryTitle);
+            commandsContainer.appendChild(categoryTitle);
 
-        // Создаем контейнер для команд категории
-        const commandList = document.createElement('div');
-        commandList.style.marginLeft = '10px';
-        commandsContainer.appendChild(commandList);
+            // Создаем контейнер для команд категории
+            const commandList = document.createElement('div');
+            commandList.style.marginLeft = '10px';
+            commandsContainer.appendChild(commandList);
 
-        // Добавляем обработчик клика для сворачивания/разворачивания
-        categoryTitle.onclick = () => {
-            if (commandList.style.display === 'none') {
-                commandList.style.display = 'block';
-                categoryIcon.innerText = ' ▼';
-            } else {
-                commandList.style.display = 'none';
-                categoryIcon.innerText = ' ►';
-            }
-        };
-
-        // Обрабатываем команды внутри категории
-        category.commands.forEach((cmd) => {
-            const commandBlock = document.createElement('div'); // Блок для команды
-            commandBlock.style.display = 'flex';
-            commandBlock.style.flexDirection = 'column';
-            commandBlock.style.marginBottom = '10px';
-
-            const btn = document.createElement('button'); // Кнопка команды
-            btn.innerText = cmd.label;
-            btn.title = cmd.description;
-            btn.style.padding = '8px';
-            btn.style.border = '1px solid #ccc';
-            btn.style.borderRadius = '5px';
-            btn.style.backgroundColor = !cmd.bcolor ? '#e0e0e0' : cmd.bcolor ;
-            btn.style.color = !cmd.color ? '#000' : cmd.color ;
-            btn.style.cursor = 'pointer';
-
-            const inputs = []; // Массив для хранения полей ввода
-
-            // Если команда имеет параметры, создаем поля ввода
-            if (cmd.parameters && cmd.parameters.length > 0) {
-                cmd.parameters.forEach(param => {
-                    const Input = document.createElement('input');
-                    Input.type = 'text';
-                    Input.placeholder = `Введите ${param}`;
-                    Input.style.marginBottom = '5px';
-                    Input.style.backgroundColor = '#333';
-                    Input.style.color = '#fff';
-                    Input.style.borderRadius = '4px';
-                    commandBlock.appendChild(Input);
-                    inputs.push(Input); // Добавляем поле в массив
-                });
-            }
-
-            // Обработчик нажатия на кнопку
-            btn.onclick = () => {
-                if (!cmd.message) {
-                let finalCommand = cmd.command; // Изначальная команда
-
-                // Проверяем, заполнены ли все параметры
-                for (let i = 0; i < inputs.length; i++) {
-                    const value = inputs[i].value.trim();
-                    if (!value) {
-                        sendmsg(`Параметр "${cmd.parameters[i]}" не может быть пустым!`,'Bot Menu Client (Error)','Bot Menu Client','#0066ff')
-                        return; // Отменяем выполнение, если параметр пуст
-                    }
-                    finalCommand = finalCommand.replace(`[${cmd.parameters[i]}]`, value); // Заменяем параметр
-                }
-
-                // Вставляем готовую команду в чат
-                const chatInput = document.querySelector('#chat-input');
-                if (chatInput) {
-                    chatInput.value = finalCommand;
-                    chatInput.focus(); // Устанавливаем фокус на чат
+            // Добавляем обработчик клика для сворачивания/разворачивания
+            categoryTitle.onclick = () => {
+                if (commandList.style.display === 'none') {
+                    commandList.style.display = 'block';
+                    categoryIcon.innerText = ' ▼';
                 } else {
-                    console.error('Chat input not found!');
-                }}else {
-                    let msguser = cmd.message
-                    botsend(botId,msguser)
+                    commandList.style.display = 'none';
+                    categoryIcon.innerText = ' ►';
                 }
-              };
+            };
 
-            commandBlock.appendChild(btn); // Добавляем кнопку в блок команды
-            commandList.appendChild(commandBlock); // Добавляем блок команды в контейнер категории
+            // Обрабатываем команды внутри категории
+            category.commands.forEach((cmd) => {
+                const commandBlock = document.createElement('div'); // Блок для команды
+                commandBlock.style.display = 'flex';
+                commandBlock.style.flexDirection = 'column';
+                commandBlock.style.marginBottom = '10px';
+
+                const btn = document.createElement('button'); // Кнопка команды
+                btn.innerText = cmd.label;
+                btn.title = cmd.description;
+                btn.style.padding = '8px';
+                btn.style.border = '1px solid #ccc';
+                btn.style.borderRadius = '5px';
+                btn.style.backgroundColor = !cmd.bcolor ? '#e0e0e0' : cmd.bcolor ;
+                btn.style.color = !cmd.color ? '#000' : cmd.color ;
+                btn.style.cursor = 'pointer';
+
+                const inputs = []; // Массив для хранения полей ввода
+
+                // Если команда имеет параметры, создаем поля ввода
+                if (cmd.parameters && cmd.parameters.length > 0) {
+                    cmd.parameters.forEach(param => {
+                        const Input = document.createElement('input');
+                        Input.type = 'text';
+                        Input.placeholder = `Введите ${param}`;
+                        Input.style.marginBottom = '5px';
+                        Input.style.backgroundColor = '#333';
+                        Input.style.color = '#fff';
+                        Input.style.borderRadius = '4px';
+                        commandBlock.appendChild(Input);
+                        inputs.push(Input); // Добавляем поле в массив
+                    });
+                }
+
+                // Обработчик нажатия на кнопку
+                btn.onclick = () => {
+                    if (!cmd.message) {
+                        let finalCommand = cmd.command; // Изначальная команда
+
+                        // Проверяем, заполнены ли все параметры
+                        for (let i = 0; i < inputs.length; i++) {
+                            const value = inputs[i].value.trim();
+                            if (!value) {
+                                botmenu.client.send(`Параметр "${cmd.parameters[i]}" не может быть пустым!`,'Bot Menu Client [Error]','Bot Menu Client','#0066ff')
+                                return; // Отменяем выполнение, если параметр пуст
+                            }
+                            finalCommand = finalCommand.replace(`[${cmd.parameters[i]}]`, value); // Заменяем параметр
+                        }
+
+                        // Вставляем готовую команду в чат
+                        const chatInput = document.querySelector('#chat-input');
+                        if (chatInput) {
+                            chatInput.value = finalCommand;
+                            chatInput.focus(); // Устанавливаем фокус на чат
+                        } else {
+                            console.error('Chat input not found!');
+                        }}else {
+                            let msguser = cmd.message
+                            botmenu.bot.send(botId,msguser)
+                        }
+                };
+
+                commandBlock.appendChild(btn); // Добавляем кнопку в блок команды
+                commandList.appendChild(commandBlock); // Добавляем блок команды в контейнер категории
+            });
         });
-    });
-}
+    }
 
     // Делает контейнер перетаскиваемым
     class BotChatPanel {
@@ -364,11 +389,21 @@
     MPP.client.on('custom', (data) => {
         if (!data.data || data.data.m !== 'BotMenu') return;
 
-        const { botName, categories, userRank } = data.data;
+        const { version, botName, categories, userRank } = data.data;
         const botId = data.p;
 
         if (!botId || !botName || !Array.isArray(categories)) {
             console.debug('Invalid bot data received:', data.data);
+            return;
+        }
+        if (!version) {
+            botmenu.client.send(`[${botName}](${botId}) This bot does not have a Version `,'Bot Menu Client [Error]','Bot Menu Client','#0066ff')
+            return
+        }
+
+        if (version < useversion) {
+            botmenu.bot.type(botId , `old.version`);
+            botmenu.client.send(`This bot is outdated, if you own it update the bot [${botName}](${botId}) to the latest version.`,'Bot Menu Client [Error]','Bot Menu Client','#0066ff')
             return;
         }
 
@@ -390,7 +425,8 @@
             });
 
             addTab(botId, botName); // Добавляем вкладку для бота
-            sendmsg(`Данные были получены с ${botName}`,'Bot Menu Client','Bot Menu Client','#0066ff')
+            botmenu.client.send(`Данные были получены с ${botName}`,'Bot Menu Client','Bot Menu Client','#0066ff')
+            botmenu.bot.type(botId , 'confirm')
         } else {
             // Обновляем существующие данные
             botsData[botId].categories = categories.map((category) => ({
@@ -401,7 +437,7 @@
                 requiredRank: category.requiredRank
             }));
             botsData[botId].userRank = userRank;
-            sendmsg(`Данные бота ${botName} были обновлены`,'Bot Menu Client','Bot Menu Client','#0066ff');
+            botmenu.client.send(`Данные бота ${botName} были обновлены`,'Bot Menu Client','Bot Menu Client','#0066ff');
         }
     });
 
