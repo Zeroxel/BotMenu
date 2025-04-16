@@ -10,8 +10,8 @@
 // @license      ARC
 // @grant        GM_info
 // @description Интерфейс для управления командами ботов с поддержкой категорий и сортировки
-// @downloadURL 
-// @updateURL 
+// @downloadURL https://raw.githubusercontent.com/Zeroxel/BotMenu/refs/heads/main/Client/BotMenu-Client-unstable.js
+// @updateURL https://raw.githubusercontent.com/Zeroxel/BotMenu/refs/heads/main/Client/BotMenu-Client-unstable.js
 // ==/UserScript==
 
 /*global MPP*/
