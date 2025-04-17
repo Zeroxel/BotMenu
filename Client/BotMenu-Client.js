@@ -1,5 +1,7 @@
 // ==UserScript==
-// @name         BotMenu Client Indev
+// @name         BotMenu Client [Indev]
+// @name:en      BotMenu Client [Indev]
+// @name:ru      БотМеню Клиент [Indev]
 // @namespace    https://github.com/Zeroxel/BotMenu/
 // @version      4.9
 // @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
