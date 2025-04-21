@@ -3,7 +3,7 @@
 // @name:en      BotMenu Client [Indev]
 // @name:ru      БотМеню Клиент [Indev]
 // @namespace    https://github.com/Zeroxel/BotMenu/
-// @version      4.9
+// @version      5.0
 // @description:ru  Интерфейс для управления командами ботов с поддержкой категорий и сортировки
 // @description:en  Interface for bot team management with support for categorization and sorting
 // @author       gtnntg
@@ -391,9 +391,15 @@ const useversion = GM_info.script.version;
     MPP.client.on('custom', (data) => {
         if (!data.data || data.data.m !== 'BotMenu') return;
 
-        const { version, botName, categories, userRank } = data.data;
+        const { version, botName, botColor, categories, userRank } = data.data;
         const botId = data.p;
 
+        if (!data.data.mode) {
+            botmenu.client.send(`[${botName}](${botId}) This bot does not have a Mode `,'Bot Menu Client [Error]','Bot Menu Client','#0066ff')
+            return
+        }
+
+        if (data.data.mode === 'CSC') {
         if (!botId || !botName || !Array.isArray(categories)) {
             console.debug('Invalid bot data received:', data.data);
             return;
@@ -440,6 +446,10 @@ const useversion = GM_info.script.version;
             }));
             botsData[botId].userRank = userRank;
             botmenu.client.send(`Данные бота ${botName} были обновлены`,'Bot Menu Client','Bot Menu Client','#0066ff');
+        }
+        } else if (data.data.mode === 'MSG' || data.data.mode === ('Message' || 'message')){
+            let msg = data.data.message;
+            botmenu.client.send(`${msg}`,`${botName}`,`Bot Menu (${botId})`,`${botColor}`);
         }
     });
 
