@@ -19,8 +19,19 @@ let x = `/`;
         commands: [
             { label: "LRanks", command: ``, message:`LoadRanks`, description: "Загружает Ранги"},
             { label: "Get My Rank", command: ``, message:`GetMyRank`, description: "получить свой ранг"},
-            { label: "Kick", command: `${x}kick [id]`, description: "Исключить пользователя по id", parameters: ["id"]},
-            { label: "Give Crown to ID", command: `${x}crown [id]`, description: "Дать корону по id", parameters: ["id"]},
+            { label: "Kick", command: `${x}kick [id]`, description: "Исключить пользователя по id", 
+             parameters: {
+              name: 'input',
+              content: 'id',
+              required: true
+            }},
+            { label: "Give Crown to ID", command: `${x}crown [id]`, description: "Дать корону по id", 
+             parameters: 
+            {
+              name: 'input',
+              content: 'id',
+              required: true
+            }},
             { label: "Give me Crown", command: `${x}mecrown`, description: "Дать корону себе"},
         ]
     },
