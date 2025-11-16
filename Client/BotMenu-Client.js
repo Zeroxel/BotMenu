@@ -11,6 +11,7 @@
 // @match        *://mpp.8448.space/*
 // @license      ARC
 // @grant        GM_info
+// @supportURL   https://github.com/Zeroxel/BotMenu/discussions/categories/bot-menu-client
 // ==/UserScript==
 
 /*global MPP*/
